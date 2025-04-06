@@ -1,0 +1,13 @@
+Tag {
+	id: 
+	key: string,
+	color: string,
+}
+
+TimeSpan {
+	id: 
+	start: time,
+	end: time,
+	tags: []Tag
+	note: string
+}
