@@ -1,10 +1,14 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import { cors } from 'hono/cors';
 import { getTags, getTagById, createTag, updateTag, deleteTag } from './routes';
 import { getTimeSpans, getTimeSpanById, createTimeSpan, updateTimeSpan, deleteTimeSpan } from './routes';
 
 const app = new Hono();
 const port = 3001;
+
+// Enable CORS middleware
+app.use('*', cors());
 
 // Tag endpoints
 app.get('/tags', getTags);
