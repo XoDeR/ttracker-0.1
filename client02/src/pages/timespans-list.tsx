@@ -1,12 +1,42 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTimeSpans } from '@/features/timespans/api/get-timespans';
 import { TimeSpan } from '@/common/types';
 
 export const TimeSpansList: React.FC = () => {
+  const queryClient = useQueryClient();
+
   const { data: timeSpans, isLoading, isError, error } = useQuery<TimeSpan[], Error>({
     queryKey: ['timespans'],
     queryFn: getTimeSpans,
+  });
+
+  // Utility to generate numeric IDs
+  const generateId = (): number => Math.floor(Date.now() / 1_000_000);
+
+  // Mutation for adding a TimeSpan
+  const addTimeSpanMutation = useMutation({
+    mutationFn: async () => {
+      const randomData: TimeSpan = {
+        id: generateId(), // Random ID for now
+        start: new Date(),
+        end: new Date(new Date().getTime() + 3600000), // 1 hour later
+        tags: [{ id: generateId(), key: 'random-tag', color: '#00f' }],
+        note: 'Random note',
+      };
+      const response = await fetch('http://localhost:3001/timespans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(randomData),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add TimeSpan');
+      }
+      return randomData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timespans'] }); // Refresh the list after adding
+    },
   });
 
   if (isLoading) {
@@ -20,6 +50,12 @@ export const TimeSpansList: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">TimeSpans</h1>
+      <button
+        className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        onClick={() => addTimeSpanMutation.mutate()}
+      >
+        Add Random TimeSpan
+      </button>
       <div className="overflow-x-auto">
         <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
           <thead className="bg-gray-200">
